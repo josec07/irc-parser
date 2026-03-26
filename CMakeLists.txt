@@ -1,18 +1,23 @@
 cmake_minimum_required(VERSION 3.10)
-project(TwitchIRC CXX)
+project(irc-parser CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(twitch-irc
-    src/twitch_irc.cpp
+find_package(Threads REQUIRED)
+
+add_library(ircp_lib STATIC
+    src/ircp.cpp
+    src/irc_connection.cpp
 )
 
-target_include_directories(twitch-irc
+target_include_directories(ircp_lib
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
-# TwitchIRC requires Boost Asio (via IrcConnection if kept) and IrcConnection itself
-# For now, we expect the consumer to provide IrcConnection or we'll add it later.
+target_link_libraries(ircp_lib PUBLIC Threads::Threads)
+
+add_executable(irc-parser src/main.cpp)
+target_link_libraries(irc-parser PRIVATE ircp_lib)

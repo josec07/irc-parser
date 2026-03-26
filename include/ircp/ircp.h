@@ -1,13 +1,12 @@
-#ifndef TWEETHC_IRC_H
-#define TWEETHC_IRC_H
+#ifndef IRCP_H
+#define IRCP_H
 
-#include "network/irc_connection.h"
+#include "ircp/irc_connection.h"
 #include <string>
 #include <sstream>
 #include <algorithm>
 
-namespace ctic {
-namespace providers {
+namespace ircp {
 
 class TwitchIRC {
 public:
@@ -16,18 +15,18 @@ public:
     bool connect();
     std::string readLine();
     std::string extract_twitch_channel_from_url(const std::string& url);
-    bool parse_message(const std::string& raw, std::string& username, std::string& content);
+    // Modified to output json string, returns empty string if not a chat message
+    std::string parse_message(const std::string& raw);
     void disconnect();
     bool test_connection(const std::string& channel, int timeout_seconds);
 
 private:
-    ctic::network::IrcConnection irc_connection_;
+    ircp::IrcConnection irc_connection_;
     std::string password_;
     std::string channel_;
     bool connected_;
     int message_count_;
 };
 
-}
 }
 #endif
