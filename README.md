@@ -1,6 +1,6 @@
 # IRCP (IRC Parser)
 
-IRCP is a compiled C++ parser for live text sockets (Twitch/Kick IRC). 
+IRCP is a compiled C++ parser for live text sockets (Twitch IRC). 
 
 By isolating the raw socket lifecycle into a dedicated C++ process, IRCP manages network fragmentation and pipes clean JSON Lines (`.jsonl`) directly to standard output for downstream consumption.
 
