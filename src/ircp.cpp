@@ -17,31 +17,48 @@ void TwitchIRC::run() {
 }
 
 bool TwitchIRC::connect() {
-    // Suppressed stdout logging
+    std::cout << "[TwitchIRC] === Starting connection to Twitch IRC ===" << std::endl;
+    std::cout << "[TwitchIRC] Host: irc.twitch.tv, Port: 6667" << std::endl;
+    std::cout << "[TwitchIRC] Target channel: #" << channel_ << std::endl;
     
     // First, establish TCP connection
+    std::cout << "[TwitchIRC] Step 1: Establishing TCP connection..." << std::endl;
     if (!irc_connection_.connect()) {
         std::cerr << "[TwitchIRC] TCP connection failed" << std::endl;
         return false;
     }
+    std::cout << "[TwitchIRC] Step 1: TCP connection established!" << std::endl;
     
     // send PASS
+    std::cout << "[TwitchIRC] Step 2: Sending PASS command..." << std::endl;
     irc_connection_.sendPassword(password_);
+    std::cout << "[TwitchIRC] Step 2: PASS sent (password hidden)" << std::endl;
 
     // send NICK and USER
-    std::string nick = "justin" + std::to_string(rand() % 1000);
+    std::string nick = "justinfan" + std::to_string(rand() % 100000);
+    std::cout << "[TwitchIRC] Step 3: Generating random nickname: " << nick << std::endl;
+    
+    std::cout << "[TwitchIRC] Step 4: Sending NICK command..." << std::endl;
     irc_connection_.send("NICK " + nick + "\r\n");
+    std::cout << "[TwitchIRC] Step 4: NICK sent: " << nick << std::endl;
+    
+    std::cout << "[TwitchIRC] Step 5: Sending USER command..." << std::endl;
     irc_connection_.send("USER " + nick + " 0 * :" + nick + "\r\n");
+    std::cout << "[TwitchIRC] Step 5: USER sent" << std::endl;
 
     // Wait for welcome message
+    std::cout << "[TwitchIRC] Step 6: Waiting for welcome message (timeout: 10s)..." << std::endl;
     auto start = std::chrono::steady_clock::now();
     bool got_welcome = false;
+    int line_count = 0;
 
     while (!got_welcome) {
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
         if (elapsed > 10) {
             std::cerr << "[TwitchIRC] Timeout waiting for welcome message" << std::endl;
+            std::cerr << "[TwitchIRC] Elapsed time: " << elapsed << " seconds" << std::endl;
+            std::cerr << "[TwitchIRC] Lines received before timeout: " << line_count << std::endl;
             return false;
         }
 
@@ -51,15 +68,22 @@ bool TwitchIRC::connect() {
             continue;
         }
         
+        line_count++;
+        std::cout << "[TwitchIRC] <-- Line #" << line_count << " (t=" << elapsed << "s): " << line << std::endl;
+        
         if (line.find("Welcome") != std::string::npos) {
+            std::cout << "[TwitchIRC] Welcome message found! (contains 'Welcome')" << std::endl;
             got_welcome = true;
         }
     }
 
     // Join the channel
+    std::cout << "[TwitchIRC] Step 7: Joining channel #" << channel_ << "..." << std::endl;
     irc_connection_.send("JOIN #" + channel_ + "\r\n");
+    std::cout << "[TwitchIRC] Step 7: JOIN command sent" << std::endl;
     
     connected_ = true;
+    std::cout << "[TwitchIRC] === Connection successful! Now monitoring #" << channel_ << " ===" << std::endl;
     return true;
 }
 
