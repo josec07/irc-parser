@@ -40,19 +40,3 @@ Run the binary by passing a Twitch channel name or URL:
 {"channel":"justin","message":"pogchamp","username":"some_user"}
 ```
 
-## Consuming in Python
-
-You can easily wrap this executable in Python using `subprocess`:
-
-```python
-import subprocess
-import json
-
-def read_chat(channel):
-    process = subprocess.Popen(['./irc-parser', channel], stdout=subprocess.PIPE)
-    for line in iter(process.stdout.readline, b''):
-        message = json.loads(line)
-        print(f"{message['username']}: {message['message']}")
-
-read_chat('justin')
-```
