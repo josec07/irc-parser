@@ -30,6 +30,36 @@ bool IrcConnection::connect() {
     }
 }
 
+bool IrcConnection::reconnect() {
+    //close the current socket connection
+    boost::system::error_code error;
+    //create a error code object
+
+
+    socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both,error);
+    //shutdowns the socket, attaches error
+
+    if(error){
+        std::cerr << "[IRC] Error during shutdown: " << error.message() << std::endl;
+    }
+    //spells out error code if any. can send this out to external service
+
+
+    socket_.close(error);
+        if (error) {
+        std::cerr << "[IRC] Error during close: " << error.message() << std::endl;
+    }
+
+    //Reconnect to the server
+    if(!connect()){
+        std::cerr << "[IRC] Reconnect failed." << std::endl;
+        return false;
+    }
+
+    std::cout << "[IRC] Reconnected to server successfully." << std::endl;
+    return true;  
+}
+
 void IrcConnection::run() {
     io_context_.run();
 }
@@ -58,6 +88,16 @@ std::string IrcConnection::readLine() {
         return line;
     } else {
         std::cerr << "[IRC] Read error: " << error.message() << std::endl;
+
+        if(reconnect()){
+            std::cout <<"[IRC] Reconnected successfully after read error." << std::endl;
+            return readLine(); // recursive call to start reading again after reconnecting
+        } else { 
+            std::cerr << "[IRC] Failed to reconnect after read error." << std::endl; // if i still fail I can figure out here
+            return "";
+        }
+
+
         return "";
     }
 }

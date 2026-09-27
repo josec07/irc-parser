@@ -26,6 +26,15 @@ cmake ..
 make
 ```
 
+## Tar Ball
+```bash
+
+tar -xzf irc-parser-1.0.0-Linux.tar.gz
+
+cd irc-parser-1.0.0-Linux
+
+./irc-parser
+```
 ### Usage
 
 Run the binary by passing a Twitch channel name or URL:

@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
     std::string password = "SCHMOOPIIE";
 
     ircp::TwitchIRC irc(host, port, password, channel);
-
+    
     if (!irc.connect()) {
         std::cerr << "Failed to connect to Twitch IRC." << std::endl;
         return 1;

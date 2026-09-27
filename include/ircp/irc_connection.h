@@ -10,6 +10,7 @@ class IrcConnection {
 public:
     IrcConnection(const std::string& host, int port);
     bool connect();
+    bool reconnect();
     void run();
     std::string readLine();
     void send(const std::string& message);
@@ -27,6 +28,11 @@ private:
 
     void startRead();
     void handleLine(const std::string& line);
+
+    //retry logic
+    int retry_count_;
+    std::time_t last_reconnect_time_;
+    static constexpr int MAX_RETRIES = 5;
 };
 
 }
