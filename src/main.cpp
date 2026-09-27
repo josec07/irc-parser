@@ -2,8 +2,12 @@
 #include "ircp/url.h"
 #include <iostream>
 #include <string>
+#include "ircp/logger.h"
 
 int main(int argc, char* argv[]) {
+
+    Logger::initialize("file_logger", "logs/irc.log");
+    
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <twitch_channel_or_url>" << std::endl;
         return 1;

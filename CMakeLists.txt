@@ -19,6 +19,7 @@ include(CPack)
 add_library(ircp_lib STATIC
     src/ircp.cpp
     src/irc_connection.cpp
+    src/logger.cpp
 )
 
 target_include_directories(ircp_lib

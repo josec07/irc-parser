@@ -2,6 +2,7 @@
 #include <boost/asio.hpp>
 #include <iostream>
 #include <string>
+#include "ircp/logger.h"
 
 namespace ircp {
 
@@ -87,7 +88,8 @@ std::string IrcConnection::readLine() {
         std::cout << "[IRC] Raw data received (" << line.length() << " bytes): " << line << std::endl;
         return line;
     } else {
-        std::cerr << "[IRC] Read error: " << error.message() << std::endl;
+        Logger::error("[IRC] Read error: " + error.message());
+        Logger::info("[IRC] error occured with: " + error.message());
 
         if(reconnect()){
             std::cout <<"[IRC] Reconnected successfully after read error." << std::endl;
