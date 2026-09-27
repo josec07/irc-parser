@@ -1,6 +1,7 @@
 #pragma once
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
+#include <memory>
 
 class Logger {
 public:
@@ -17,5 +18,7 @@ public:
     static void debug(const std::string& message);
 
 private:
-    static spdlog::logger* logger_;
+
+    // shared ptr creates type
+    static std::shared_ptr<spdlog::logger> logger_;
 };
