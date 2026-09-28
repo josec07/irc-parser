@@ -1,7 +1,8 @@
 #include "ircp/logger.h"
 #include <memory>
 
-spdlog::logger* Logger::logger_ = nullptr;
+std::shared_ptr<spdlog::logger> Logger::logger_ = nullptr;
+
 
 void Logger::initialize(const std::string& logger_name, const std::string& log_file_path) {
     if (logger_ != nullptr) {
@@ -12,9 +13,7 @@ void Logger::initialize(const std::string& logger_name, const std::string& log_f
     // Create a file sink
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file_path, true);
 
-    // Create the logger
-    logger_ = new spdlog::logger(logger_name, file_sink);
-
+    logger_ = std::make_shared<spdlog::logger>(logger_name, file_sink);
     // Set the logger as the default (optional)
     spdlog::set_default_logger(logger_);
 
