@@ -5,7 +5,7 @@ IRCP is a compiled C++ parser for live text sockets (Twitch IRC).
 By isolating the raw socket lifecycle into a dedicated C++ process, IRCP manages network fragmentation and pipes clean JSON Lines (`.jsonl`) directly to standard output for downstream consumption.
 
 ```
-Notice: This project is a tool built for developers, Users can utilize www.chatomatic.tv. This will be the service with a launch date of Oct. 31st.
+Notice: This project is a tool built for developers, Users can utilize www.chatomatic.tv. Launch dates will be added to our discord.
 ```
 
 ## Architecture
