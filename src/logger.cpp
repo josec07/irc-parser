@@ -8,7 +8,7 @@ using spdlog::sinks::basic_file_sink_mt;
 std::shared_ptr<spdlog::logger> spdlog::logger::logger_ = nullptr;
 
 void spdlog::logger::initialize(const std::string &logger_name,
-                        const std::string &log_file_path) {
+                                const std::string &log_file_path) {
   if (logger_ != nullptr) {
     info("Logger already initialized.");
     return;
@@ -32,10 +32,18 @@ spdlog::logger &spdlog::logger::get_logger() {
   return *logger_;
 }
 
-void spdlog::logger::info(const std::string &message) { get_logger().info(message); }
+void spdlog::logger::info(const std::string &message) {
+  get_logger().info(message);
+}
 
-void spdlog::logger::error(const std::string &message) { get_logger().error(message); }
+void spdlog::logger::error(const std::string &message) {
+  get_logger().error(message);
+}
 
-void spdlog::logger::warn(const std::string &message) { get_logger().warn(message); }
+void spdlog::logger::warn(const std::string &message) {
+  get_logger().warn(message);
+}
 
-void spdlog::logger::debug(const std::string &message) { get_logger().debug(message); }
+void spdlog::logger::debug(const std::string &message) {
+  get_logger().debug(message);
+}
