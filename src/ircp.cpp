@@ -1,8 +1,6 @@
 #include "ircp/ircp.h"
-#include <iostream>
 #include <boost/asio.hpp>
-#include <chrono>
-#include <thread>
+#include <iostream>
 #include <nlohmann/json.hpp>
 
 namespace ircp {

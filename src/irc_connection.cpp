@@ -1,7 +1,6 @@
 #include "ircp/irc_connection.h"
 #include <boost/asio.hpp>
 #include <iostream>
-#include <string>
 #include "ircp/logger.h"
 
 namespace ircp {
