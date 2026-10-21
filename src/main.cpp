@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 
     // Default connection details for anon read-only
     std::string host = "irc.twitch.tv";
-    int port = 6667;
+    int port = 6697;
     std::string password = "SCHMOOPIIE";
 
     ircp::TwitchIRC irc(host, port, password, channel);
@@ -33,14 +33,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    std::deque<std::string> lastN;
+    const size_t MAX = 1000;
+    //one line
     while (true) {
         std::string line = irc.readLine();
-        if (!line.empty()) {
-            std::string json_msg = irc.parse_message(line);
-            if (!json_msg.empty()) {
-                std::cout << json_msg << std::endl;
-            }
-        }
+        if (!line.empty())continue;
+        
+        std::string json_msg = irc.parse_message(line);
+        if (!json_msg.empty())continue;
+        
+        lastN.push_back(json_msg);
+        std::cout << json_msg << std::endl;
+        if(lastN.size() > MAX)lastN.pop_front();
     }
 
     return 0;
