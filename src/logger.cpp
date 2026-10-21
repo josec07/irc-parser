@@ -5,17 +5,18 @@
 
 using spdlog::sinks::basic_file_sink_mt;
 
-std::shared_ptr<spdlog::logger> spdlog::logger::logger_ = nullptr;
+std::shared_ptr<spdlog::logger> Logger::logger_ = nullptr;
 
-void spdlog::logger::initialize(const std::string &logger_name,
+void Logger::initialize(const std::string &logger_name,
                                 const std::string &log_file_path) {
   if (logger_ != nullptr) {
-    info("Logger already initialized.");
+    spdlog::info("Logger already initialized.");
     return;
   }
 
   // Create a file sink
-  auto file_sink = std::make_shared<basic_file_sink_mt>(log_file_path, true);
+  auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file_path, true);
+
 
   logger_ = std::make_shared<spdlog::logger>(logger_name, file_sink);
   // Set the logger as the default (optional)
@@ -25,25 +26,25 @@ void spdlog::logger::initialize(const std::string &logger_name,
   logger_->set_level(spdlog::level::info);
 }
 
-spdlog::logger &spdlog::logger::get_logger() {
+spdlog::logger &Logger::get_logger() {
   if (logger_ == nullptr) {
     throw std::runtime_error("Logger not initialized.");
   }
   return *logger_;
 }
 
-void spdlog::logger::info(const std::string &message) {
+void Logger::info(const std::string &message) {
   get_logger().info(message);
 }
 
-void spdlog::logger::error(const std::string &message) {
+void Logger::error(const std::string &message) {
   get_logger().error(message);
 }
 
-void spdlog::logger::warn(const std::string &message) {
+void Logger::warn(const std::string &message) {
   get_logger().warn(message);
 }
 
-void spdlog::logger::debug(const std::string &message) {
+void Logger::debug(const std::string &message) {
   get_logger().debug(message);
 }
