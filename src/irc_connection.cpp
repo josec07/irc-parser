@@ -41,23 +41,22 @@ bool IrcConnection::reconnect() {
   // shutdowns the socket, attaches error
 
   if (error) {
-    std::cerr << "[IRC] Error during shutdown: " << error.message()
-              << std::endl;
+    Logger::error("[IRC] Error during shutdown: " + error.message());
   }
   // spells out error code if any. can send this out to external service
 
   socket_.close(error);
   if (error) {
-    std::cerr << "[IRC] Error during close: " << error.message() << std::endl;
+    std::cerr << "[IRC-Reconnect] Error during close: " << error.message() << std::endl;
   }
 
   // Reconnect to the server
   if (!connect()) {
-    std::cerr << "[IRC] Reconnect failed." << std::endl;
+    Logger::info("[IRC-Reconnnect] Reconnect failed." + error.message());
     return false;
   }
 
-  std::cout << "[IRC] Reconnected to server successfully." << std::endl;
+  Logger::info("[IRC-Reconnect] Reconnected to server successfully.");
   return true;
 }
 
@@ -87,12 +86,12 @@ std::string IrcConnection::readLine() {
               << " bytes): " << line << std::endl;
     return line;
   } else {
-    Logger::error("[IRC] Read error: " + error.message());
-    Logger::info("[IRC] error occured with: " + error.message());
+    ///
+    Logger::error("[IRC001] Read error: " + error.message());
+    Logger::info("[IRC001] error occured with: " + error.message());
 
     if (reconnect()) {
-      std::cout << "[IRC] Reconnected successfully after read error."
-                << std::endl;
+      Logger::info("[IRC] Reconnected successfully after read error." + error.message());
       return readLine(); // recursive call to start reading again after
                          // reconnecting
     } else {
