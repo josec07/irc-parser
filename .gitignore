@@ -1,6 +1,7 @@
 build/
 .vscode/
 .idea/
+docs/
 *.o
 *.a
 
@@ -36,3 +37,4 @@ build/
 logs/
 .clangd
 compile_commands.json
+read.txt
