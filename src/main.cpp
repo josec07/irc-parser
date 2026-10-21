@@ -38,10 +38,10 @@ int main(int argc, char* argv[]) {
     //one line
     while (true) {
         std::string line = irc.readLine();
-        if (!line.empty())continue;
+        if (line.empty())continue;
         
         std::string json_msg = irc.parse_message(line);
-        if (!json_msg.empty())continue;
+        if (json_msg.empty())continue;
         
         lastN.push_back(json_msg);
         std::cout << json_msg << std::endl;
