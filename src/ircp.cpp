@@ -71,7 +71,7 @@ bool TwitchIRC::connect() {
 
     std::string line = irc_connection_.readLine();
     if (line.empty()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::chrono::milliseconds(100);
       continue;
     }
 
