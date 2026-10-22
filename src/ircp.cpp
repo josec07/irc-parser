@@ -103,23 +103,7 @@ bool TwitchIRC::connect() {
 std::string TwitchIRC::readLine() { return irc_connection_.readLine(); }
 
 std::string TwitchIRC::extract_twitch_channel_from_url(const std::string &url) {
-  // Remove protocol and www
-  std::string cleaned = url;
-  std::replace(cleaned.begin(), cleaned.end(), ':', ' ');
-  std::replace(cleaned.begin(), cleaned.end(), '/', ' ');
-  std::istringstream iss(cleaned);
-  std::string part;
-
-  // Skip "www.twitch.tv"
-  while (iss >> part) {
-    if (part == "www.twitch.tv") {
-      if (iss >> part) {
-        return part; // Return the channel name
-      }
-    }
-  }
-
-  return ""; // Return empty string if parsing failed
+  return extract_channel_from_url(url);
 }
 
 std::string TwitchIRC::parse_message(const std::string &raw) {
