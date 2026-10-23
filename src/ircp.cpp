@@ -1,4 +1,5 @@
 #include "ircp/ircp.h"
+#include "ircp/url.h"
 #include <boost/asio.hpp>
 #include <chrono>
 #include <iostream>
