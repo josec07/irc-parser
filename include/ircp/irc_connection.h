@@ -4,27 +4,27 @@
 #include <string>
 #include <boost/asio.hpp>
 
-namespace ircp {
-
 class IrcConnection {
 public:
     IrcConnection(const std::string& host, int port);
-    bool connect();
-    bool reconnect();
+    bool openSocket();
+    bool reconnectSocket();
     void run();
     std::string readLine();
     void send(const std::string& message);
     void sendPassword(const std::string& password);
     void sendJoin(const std::string& channel);
-    void disconnect();
-    bool isConnected() const { return connected_; }
+    void closeSocket();
+    bool isSocketOpen() const { return socket_open_; }
 
 private:
+    std::string host_;
+    int port_;
     boost::asio::io_context io_context_;
     boost::asio::ip::tcp::socket socket_;
     boost::asio::ip::tcp::resolver resolver_;
     boost::asio::streambuf buffer_;
-    bool connected_;
+    bool socket_open_;
 
     void startRead();
     void handleLine(const std::string& line);
@@ -34,7 +34,5 @@ private:
     std::time_t last_reconnect_time_;
     static constexpr int MAX_RETRIES = 5;
 };
-
-}
 
 #endif

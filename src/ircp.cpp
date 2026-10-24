@@ -6,31 +6,22 @@
 #include <nlohmann/json.hpp>
 #include <thread>
 
-namespace ircp {
-
 TwitchIRC::TwitchIRC(const std::string &host, int port,
                      const std::string &password, const std::string &channel)
     : irc_connection_(host, port), password_(password), channel_(channel),
-      connected_(false), message_count_(0) {
+      twitch_connected_(false), message_count_(0) {
   // Initialization
 }
 
 void TwitchIRC::run() { irc_connection_.run(); }
 
-bool TwitchIRC::connect() {
-  std::cout << "[TwitchIRC] === Starting connection to Twitch IRC ==="
-            << std::endl;
-  std::cout << "[TwitchIRC] Host: irc.twitch.tv, Port: 6667" << std::endl;
-  std::cout << "[TwitchIRC] Target channel: #" << channel_ << std::endl;
+bool TwitchIRC::connectToTwitch() {
 
-  // First, establish TCP connection
-  std::cout << "[TwitchIRC] Step 1: Establishing TCP connection..."
-            << std::endl;
-  if (!irc_connection_.connect()) {
-    std::cerr << "[TwitchIRC] TCP connection failed" << std::endl;
+  if (!irc_connection_.openSocket()) {
+    std::cerr << "[TwitchIRC] Opening TCP socket failed" << std::endl;
     return false;
   }
-  std::cout << "[TwitchIRC] Step 1: TCP connection established!" << std::endl;
+  std::cout << "[TwitchIRC] Step 1: TCP socket opened!" << std::endl;
 
   // send PASS
   std::cout << "[TwitchIRC] Step 2: Sending PASS command..." << std::endl;
@@ -92,11 +83,11 @@ bool TwitchIRC::connect() {
   // Join the channel
   std::cout << "[TwitchIRC] Step 7: Joining channel #" << channel_ << "..."
             << std::endl;
-  irc_connection_.send("JOIN #" + channel_ + "\r\n");
+  irc_connection_.sendJoin(channel_);
   std::cout << "[TwitchIRC] Step 7: JOIN command sent" << std::endl;
 
-  connected_ = true;
-  std::cout << "[TwitchIRC] === Connection successful! Now monitoring #"
+  twitch_connected_ = true;
+  std::cout << "[TwitchIRC] === Twitch IRC session established! Now monitoring #"
             << channel_ << " ===" << std::endl;
   return true;
 }
@@ -162,14 +153,14 @@ std::string TwitchIRC::parse_message(const std::string &raw) {
   return j.dump();
 }
 
-void TwitchIRC::disconnect() {
-  irc_connection_.disconnect();
-  connected_ = false;
+void TwitchIRC::disconnectFromTwitch() {
+  irc_connection_.closeSocket();
+  twitch_connected_ = false;
 }
 
 bool TwitchIRC::test_connection(const std::string &channel,
                                 int timeout_seconds) {
-  if (!connect()) {
+  if (!connectToTwitch()) {
     return false;
   }
 
@@ -181,13 +172,13 @@ bool TwitchIRC::test_connection(const std::string &channel,
     if (!line.empty()) {
       std::string json_msg = parse_message(line);
       if (!json_msg.empty()) {
-        disconnect();
+        disconnectFromTwitch();
         return true;
       }
     }
   }
 
-  disconnect();
+  disconnectFromTwitch();
   return true;
 }
 

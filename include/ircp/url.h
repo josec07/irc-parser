@@ -4,8 +4,6 @@
 #include <regex>
 #include <algorithm>
 
-namespace ircp {
-
 inline std::string extract_channel_from_url(const std::string& url) {
     std::regex pattern(R"(https?:\/\/(?:www\.)?twitch\.tv\/([a-zA-Z0-9_]+))");
     std::smatch match;
@@ -37,6 +35,4 @@ inline std::string parse_url_or_channel(const std::string& input) {
         return extract_channel_from_url(input);
     }
     return normalize_channel(input);
-}
-
 }
