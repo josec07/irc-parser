@@ -1,33 +1,27 @@
 #include "ircp/ircp.h"
+#include "ircp/url.h"
 #include <boost/asio.hpp>
+#include <chrono>
 #include <iostream>
 #include <nlohmann/json.hpp>
-
-namespace ircp {
+#include <thread>
 
 TwitchIRC::TwitchIRC(const std::string &host, int port,
                      const std::string &password, const std::string &channel)
     : irc_connection_(host, port), password_(password), channel_(channel),
-      connected_(false), message_count_(0) {
+      twitch_connected_(false), message_count_(0) {
   // Initialization
 }
 
 void TwitchIRC::run() { irc_connection_.run(); }
 
-bool TwitchIRC::connect() {
-  std::cout << "[TwitchIRC] === Starting connection to Twitch IRC ==="
-            << std::endl;
-  std::cout << "[TwitchIRC] Host: irc.twitch.tv, Port: 6667" << std::endl;
-  std::cout << "[TwitchIRC] Target channel: #" << channel_ << std::endl;
+bool TwitchIRC::connectToTwitch() {
 
-  // First, establish TCP connection
-  std::cout << "[TwitchIRC] Step 1: Establishing TCP connection..."
-            << std::endl;
-  if (!irc_connection_.connect()) {
-    std::cerr << "[TwitchIRC] TCP connection failed" << std::endl;
+  if (!irc_connection_.openSocket()) {
+    std::cerr << "[TwitchIRC] Opening TCP socket failed" << std::endl;
     return false;
   }
-  std::cout << "[TwitchIRC] Step 1: TCP connection established!" << std::endl;
+  std::cout << "[TwitchIRC] Step 1: TCP socket opened!" << std::endl;
 
   // send PASS
   std::cout << "[TwitchIRC] Step 2: Sending PASS command..." << std::endl;
@@ -71,7 +65,7 @@ bool TwitchIRC::connect() {
 
     std::string line = irc_connection_.readLine();
     if (line.empty()) {
-      std::chrono::milliseconds(100);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
     }
 
@@ -89,11 +83,11 @@ bool TwitchIRC::connect() {
   // Join the channel
   std::cout << "[TwitchIRC] Step 7: Joining channel #" << channel_ << "..."
             << std::endl;
-  irc_connection_.send("JOIN #" + channel_ + "\r\n");
+  irc_connection_.sendJoin(channel_);
   std::cout << "[TwitchIRC] Step 7: JOIN command sent" << std::endl;
 
-  connected_ = true;
-  std::cout << "[TwitchIRC] === Connection successful! Now monitoring #"
+  twitch_connected_ = true;
+  std::cout << "[TwitchIRC] === Twitch IRC session established! Now monitoring #"
             << channel_ << " ===" << std::endl;
   return true;
 }
@@ -101,23 +95,7 @@ bool TwitchIRC::connect() {
 std::string TwitchIRC::readLine() { return irc_connection_.readLine(); }
 
 std::string TwitchIRC::extract_twitch_channel_from_url(const std::string &url) {
-  // Remove protocol and www
-  std::string cleaned = url;
-  std::replace(cleaned.begin(), cleaned.end(), ':', ' ');
-  std::replace(cleaned.begin(), cleaned.end(), '/', ' ');
-  std::istringstream iss(cleaned);
-  std::string part;
-
-  // Skip "www.twitch.tv"
-  while (iss >> part) {
-    if (part == "www.twitch.tv") {
-      if (iss >> part) {
-        return part; // Return the channel name
-      }
-    }
-  }
-
-  return ""; // Return empty string if parsing failed
+  return extract_channel_from_url(url);
 }
 
 std::string TwitchIRC::parse_message(const std::string &raw) {
@@ -175,14 +153,14 @@ std::string TwitchIRC::parse_message(const std::string &raw) {
   return j.dump();
 }
 
-void TwitchIRC::disconnect() {
-  irc_connection_.disconnect();
-  connected_ = false;
+void TwitchIRC::disconnectFromTwitch() {
+  irc_connection_.closeSocket();
+  twitch_connected_ = false;
 }
 
 bool TwitchIRC::test_connection(const std::string &channel,
                                 int timeout_seconds) {
-  if (!connect()) {
+  if (!connectToTwitch()) {
     return false;
   }
 
@@ -194,14 +172,12 @@ bool TwitchIRC::test_connection(const std::string &channel,
     if (!line.empty()) {
       std::string json_msg = parse_message(line);
       if (!json_msg.empty()) {
-        disconnect();
+        disconnectFromTwitch();
         return true;
       }
     }
   }
 
-  disconnect();
+  disconnectFromTwitch();
   return true;
 }
-
-} // namespace ircp
