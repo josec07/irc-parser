@@ -181,5 +181,3 @@ bool TwitchIRC::test_connection(const std::string &channel,
   disconnectFromTwitch();
   return true;
 }
-
-} // namespace ircp
