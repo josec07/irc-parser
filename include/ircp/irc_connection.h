@@ -12,8 +12,6 @@ public:
     void run();
     std::string readLine();
     void send(const std::string& message);
-    void sendPassword(const std::string& password);
-    void sendJoin(const std::string& channel);
     void closeSocket();
     bool isSocketOpen() const { return socket_open_; }
 
