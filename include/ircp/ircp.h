@@ -12,6 +12,10 @@ public:
     void run();
     bool connectToTwitch();
     std::string readLine();
+    bool handlePing(const std::string& line);
+    void sendPassword(const std::string& password);
+    void sendJoin(const std::string& channel);
+    void sendPong(const std::string& payload);
     std::string extract_twitch_channel_from_url(const std::string& url);
     // Modified to output json string, returns empty string if not a chat message
     std::string parse_message(const std::string& raw);
