@@ -25,7 +25,7 @@ bool TwitchIRC::connectToTwitch() {
 
   // send PASS
   std::cout << "[TwitchIRC] Step 2: Sending PASS command..." << std::endl;
-  irc_connection_.sendPassword(password_);
+  sendPassword(password_);
   std::cout << "[TwitchIRC] Step 2: PASS sent (password hidden)" << std::endl;
 
   // send NICK and USER
@@ -63,7 +63,7 @@ bool TwitchIRC::connectToTwitch() {
       return false;
     }
 
-    std::string line = irc_connection_.readLine();
+    std::string line = readLine();
     if (line.empty()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
@@ -83,7 +83,7 @@ bool TwitchIRC::connectToTwitch() {
   // Join the channel
   std::cout << "[TwitchIRC] Step 7: Joining channel #" << channel_ << "..."
             << std::endl;
-  irc_connection_.sendJoin(channel_);
+  sendJoin(channel_);
   std::cout << "[TwitchIRC] Step 7: JOIN command sent" << std::endl;
 
   twitch_connected_ = true;
@@ -92,7 +92,38 @@ bool TwitchIRC::connectToTwitch() {
   return true;
 }
 
-std::string TwitchIRC::readLine() { return irc_connection_.readLine(); }
+std::string TwitchIRC::readLine() {
+  std::string line = irc_connection_.readLine();
+  if (!line.empty()) {
+    handlePing(line);
+  }
+  return line;
+}
+
+bool TwitchIRC::handlePing(const std::string &line) {
+  if (line.rfind("PING", 0) != 0) {
+    return false;
+  }
+
+  std::string payload =
+      (line.length() > 5) ? line.substr(5) : ":tmi.twitch.tv";
+  std::cout << "[TwitchIRC] PING received, replying with PONG " << payload
+            << std::endl;
+  sendPong(payload);
+  return true;
+}
+
+void TwitchIRC::sendPassword(const std::string &password) {
+  irc_connection_.send("PASS " + password + "\r\n");
+}
+
+void TwitchIRC::sendJoin(const std::string &channel) {
+  irc_connection_.send("JOIN #" + channel + "\r\n");
+}
+
+void TwitchIRC::sendPong(const std::string &payload) {
+  irc_connection_.send("PONG " + payload + "\r\n");
+}
 
 std::string TwitchIRC::extract_twitch_channel_from_url(const std::string &url) {
   return extract_channel_from_url(url);
