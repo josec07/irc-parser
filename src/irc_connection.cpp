@@ -52,15 +52,13 @@ std::string IrcConnection::readLine() {
     return "";
   }
 
-  boost::asio::streambuf buffer;
   std::string line;
-
   boost::system::error_code error;
   std::cout << "[IRC] Waiting to read data from socket..." << std::endl;
-  boost::asio::read_until(socket_, buffer, "\r\n", error);
+  boost::asio::read_until(socket_, buffer_, "\r\n", error);
 
   if (!error) {
-    std::istream is(&buffer);
+    std::istream is(&buffer_);
     std::getline(is, line);
     // Remove trailing \r if present
     if (!line.empty() && line.back() == '\r') {
@@ -101,16 +99,6 @@ void IrcConnection::send(const std::string &message) {
   std::cout << "[IRC] Send completed successfully" << std::endl;
 }
 
-void IrcConnection::sendPassword(const std::string &password) {
-  std::string msg = "PASS " + password + "\r\n";
-  send(msg);
-}
-
-void IrcConnection::sendJoin(const std::string &channel) {
-  std::string msg = "JOIN #" + channel + "\r\n";
-  send(msg);
-}
-
 void IrcConnection::closeSocket() {
   if (socket_open_) {
     boost::system::error_code ec;
@@ -123,6 +111,7 @@ void IrcConnection::closeSocket() {
       std::cerr << "[IRC] Error during socket close: " << ec.message()
                 << std::endl;
     }
+    buffer_.consume(buffer_.size());
     socket_open_ = false;
   }
 }
