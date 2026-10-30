@@ -1,50 +1,39 @@
-#include "ircp/ircp.h"
+#include "ircp/twitch_irc.h"
+#include "ircp/logger.h"
 #include "ircp/url.h"
 #include <boost/asio.hpp>
 #include <chrono>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <thread>
+#include <string>
 
 TwitchIRC::TwitchIRC(const std::string &host, int port,
                      const std::string &password, const std::string &channel)
-    : irc_connection_(host, port), password_(password), channel_(channel),
+    : irc_session_(host, port), password_(password), channel_(channel),
       twitch_connected_(false), message_count_(0) {
   // Initialization
 }
 
-void TwitchIRC::run() { irc_connection_.run(); }
+void TwitchIRC::run() { irc_session_.run(); }
 
 bool TwitchIRC::connectToTwitch() {
+  disconnectFromTwitch();
 
-  if (!irc_connection_.openSocket()) {
-    std::cerr << "[TwitchIRC] Opening TCP socket failed" << std::endl;
+  if (!irc_session_.openSocket()) {
     return false;
   }
-  std::cout << "[TwitchIRC] Step 1: TCP socket opened!" << std::endl;
 
-  // send PASS
-  std::cout << "[TwitchIRC] Step 2: Sending PASS command..." << std::endl;
   sendPassword(password_);
-  std::cout << "[TwitchIRC] Step 2: PASS sent (password hidden)" << std::endl;
 
   // send NICK and USER
   std::string nick = "justinfan" + std::to_string(rand() % 100000);
-  std::cout << "[TwitchIRC] Step 3: Generating random nickname: " << nick
-            << std::endl;
 
-  std::cout << "[TwitchIRC] Step 4: Sending NICK command..." << std::endl;
-  irc_connection_.send("NICK " + nick + "\r\n");
-  std::cout << "[TwitchIRC] Step 4: NICK sent: " << nick << std::endl;
+  irc_session_.send("NICK " + nick + "\r\n");
 
-  std::cout << "[TwitchIRC] Step 5: Sending USER command..." << std::endl;
-  irc_connection_.send("USER " + nick + " 0 * :" + nick + "\r\n");
-  std::cout << "[TwitchIRC] Step 5: USER sent" << std::endl;
+  irc_session_.send("USER " + nick + " 0 * :" + nick + "\r\n");
 
   // Wait for welcome message
-  std::cout
-      << "[TwitchIRC] Step 6: Waiting for welcome message (timeout: 10s)..."
-      << std::endl;
+
   auto start = std::chrono::steady_clock::now();
   bool got_welcome = false;
   int line_count = 0;
@@ -53,18 +42,22 @@ bool TwitchIRC::connectToTwitch() {
     auto now = std::chrono::steady_clock::now();
     auto elapsed =
         std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
+
     if (elapsed > 10) {
-      std::cerr << "[TwitchIRC] Timeout waiting for welcome message"
-                << std::endl;
-      std::cerr << "[TwitchIRC] Elapsed time: " << elapsed << " seconds"
-                << std::endl;
-      std::cerr << "[TwitchIRC] Lines received before timeout: " << line_count
-                << std::endl;
+      Logger::info("[No Welcome Timeout] [TwitchIRC] Elapsed time: " +
+                   std::to_string(elapsed) +
+                   "\n[TwitchIRC] Lines received before timeout: " +
+                   std::to_string(line_count));
       return false;
     }
 
     std::string line = readLine();
     if (line.empty()) {
+      if (!irc_session_.isSocketOpen()) {
+        std::cerr << "[TwitchIRC] Socket closed while waiting for welcome"
+                  << std::endl;
+        return false;
+      }
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
     }
@@ -87,17 +80,49 @@ bool TwitchIRC::connectToTwitch() {
   std::cout << "[TwitchIRC] Step 7: JOIN command sent" << std::endl;
 
   twitch_connected_ = true;
-  std::cout << "[TwitchIRC] === Twitch IRC session established! Now monitoring #"
-            << channel_ << " ===" << std::endl;
+  std::cout
+      << "[TwitchIRC] === Twitch IRC session established! Now monitoring #"
+      << channel_ << " ===" << std::endl;
   return true;
 }
 
+bool TwitchIRC::reconnectToTwitch() {
+  disconnectFromTwitch();
+
+  for (int attempt = 1; attempt <= MAX_RETRIES; ++attempt) {
+    Logger::info("[TwitchIRC] Reconnect attempt " + std::to_string(attempt) +
+                 " of " + std::to_string(MAX_RETRIES) + "...");
+    std::cout << "[TwitchIRC] Reconnect attempt " << attempt << " of "
+              << MAX_RETRIES << "..." << std::endl;
+
+    if (connectToTwitch()) {
+      Logger::info("[TwitchIRC] Reconnected to Twitch IRC successfully.");
+      return true;
+    }
+
+    std::this_thread::sleep_for(std::chrono::seconds(2 * attempt));
+  }
+
+  Logger::error("[TwitchIRC] Failed to reconnect after " +
+                std::to_string(MAX_RETRIES) + " attempts.");
+  std::cerr << "[TwitchIRC] Failed to reconnect after " << MAX_RETRIES
+            << " attempts." << std::endl;
+  return false;
+}
+
 std::string TwitchIRC::readLine() {
-  std::string line = irc_connection_.readLine();
+  std::string line = irc_session_.readLine();
   if (!line.empty()) {
     handlePing(line);
+    return line;
   }
-  return line;
+
+  if (twitch_connected_ && !irc_session_.isSocketOpen()) {
+    Logger::warn("[TwitchIRC] Socket disconnected. Reconnecting to Twitch...");
+    reconnectToTwitch();
+  }
+
+  return "";
 }
 
 bool TwitchIRC::handlePing(const std::string &line) {
@@ -105,8 +130,7 @@ bool TwitchIRC::handlePing(const std::string &line) {
     return false;
   }
 
-  std::string payload =
-      (line.length() > 5) ? line.substr(5) : ":tmi.twitch.tv";
+  std::string payload = (line.length() > 5) ? line.substr(5) : ":tmi.twitch.tv";
   std::cout << "[TwitchIRC] PING received, replying with PONG " << payload
             << std::endl;
   sendPong(payload);
@@ -114,15 +138,15 @@ bool TwitchIRC::handlePing(const std::string &line) {
 }
 
 void TwitchIRC::sendPassword(const std::string &password) {
-  irc_connection_.send("PASS " + password + "\r\n");
+  irc_session_.send("PASS " + password + "\r\n");
 }
 
 void TwitchIRC::sendJoin(const std::string &channel) {
-  irc_connection_.send("JOIN #" + channel + "\r\n");
+  irc_session_.send("JOIN #" + channel + "\r\n");
 }
 
 void TwitchIRC::sendPong(const std::string &payload) {
-  irc_connection_.send("PONG " + payload + "\r\n");
+  irc_session_.send("PONG " + payload + "\r\n");
 }
 
 std::string TwitchIRC::extract_twitch_channel_from_url(const std::string &url) {
@@ -185,7 +209,7 @@ std::string TwitchIRC::parse_message(const std::string &raw) {
 }
 
 void TwitchIRC::disconnectFromTwitch() {
-  irc_connection_.closeSocket();
+  irc_session_.closeSocket();
   twitch_connected_ = false;
 }
 

@@ -1,16 +1,16 @@
 #ifndef IRCP_H
 #define IRCP_H
 
-#include "ircp/irc_connection.h"
+#include "ircp/session.h"
 #include <string>
-#include <sstream>
-#include <algorithm>
+
 
 class TwitchIRC {
 public:
     TwitchIRC(const std::string& host, int port, const std::string& password, const std::string& channel);
     void run();
     bool connectToTwitch();
+    bool reconnectToTwitch();
     std::string readLine();
     bool handlePing(const std::string& line);
     void sendPassword(const std::string& password);
@@ -23,11 +23,12 @@ public:
     bool test_connection(const std::string& channel, int timeout_seconds);
 
 private:
-    IrcConnection irc_connection_;
+    Session irc_session_;
     std::string password_;
     std::string channel_;
     bool twitch_connected_;
     int message_count_;
+    static constexpr int MAX_RETRIES = 5;
 };
 
 #endif

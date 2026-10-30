@@ -5,8 +5,8 @@ project(irc-parser VERSION 1.0.0)  # Replace with your actual project name
 set(CPACK_PROJECT_NAME "${PROJECT_NAME}")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION "A cross-platform application for IRC communication")
-set(CPACK_PACKAGE_VENDOR "YourName")
-set(CPACK_PACKAGE_CONTACT "you@example.com")
+set(CPACK_PACKAGE_VENDOR "Jose Caudillo")
+set(CPACK_PACKAGE_CONTACT "caudillojose5@gmail.com")
 set(CPACK_GENERATOR "TGZ;NSIS;DMG")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,8 +18,8 @@ find_package(Threads REQUIRED)
 
 include(CPack)
 add_library(ircp_lib STATIC
-    src/ircp.cpp
-    src/irc_connection.cpp
+    src/session.cpp
+    src/twitch_irc.cpp
     src/logger.cpp
 )
 

@@ -1,4 +1,4 @@
-#include "ircp/ircp.h"
+#include "ircp/twitch_irc.h"
 #include "ircp/url.h"
 #include <iostream>
 #include <string>
@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     std::string channel = parse_url_or_channel(input);
 
     if (channel.empty()) {
-        std::cerr << "Invalid channel or URL provided." << std::endl;
+        Logger::error("[Main] Empty Channel Name.");
         return 1;
     }
 
@@ -29,24 +29,10 @@ int main(int argc, char* argv[]) {
     TwitchIRC irc(host, port, password, channel);
     
     if (!irc.connectToTwitch()) {
-        std::cerr << "Failed to connect to Twitch IRC." << std::endl;
+        Logger::error("Failed to connect to Twitch IRC.");
         return 1;
     }
 
-    std::deque<std::string> lastN;
-    const size_t MAX = 1000;
-    //one line
-    while (true) {
-        std::string line = irc.readLine();
-        if (line.empty())continue;
-        
-        std::string json_msg = irc.parse_message(line);
-        if (json_msg.empty())continue;
-        
-        lastN.push_back(json_msg);
-        std::cout << json_msg << std::endl;
-        if(lastN.size() > MAX)lastN.pop_front();
-    }
 
     return 0;
 }
