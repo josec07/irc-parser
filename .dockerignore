@@ -1,0 +1,7 @@
+.git
+build
+.env
+logs
+*.tar.gz
+*.o
+*.a

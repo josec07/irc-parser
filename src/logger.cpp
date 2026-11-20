@@ -1,50 +1,67 @@
 #include "ircp/logger.h"
-#include <spdlog/logger.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/spdlog-inl.h>
 
-using spdlog::sinks::basic_file_sink_mt;
+#include <chrono>
+#include <ctime>
+#include <iostream>
+#include <mutex>
 
-std::shared_ptr<spdlog::logger> Logger::logger_ = nullptr;
+namespace ircp {
+namespace {
 
-void Logger::initialize(const std::string &logger_name,
-                                const std::string &log_file_path) {
-  if (logger_ != nullptr) {
-    spdlog::info("Logger already initialized.");
-    return;
-  }
+Logger::Level g_level = Logger::Level::Info;
+std::mutex g_mu;
 
-  // Create a file sink
-  auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file_path, true);
-
-
-  logger_ = std::make_shared<spdlog::logger>(logger_name, file_sink);
-  // Set the logger as the default (optional)
-  spdlog::set_default_logger(logger_);
-
-  // Set log level (optional)
-  logger_->set_level(spdlog::level::info);
+const char* levelName(Logger::Level level) {
+    switch (level) {
+        case Logger::Level::Debug:
+            return "DEBUG";
+        case Logger::Level::Info:
+            return "INFO";
+        case Logger::Level::Warn:
+            return "WARN";
+        case Logger::Level::Error:
+            return "ERROR";
+    }
+    return "INFO";
 }
 
-spdlog::logger &Logger::get_logger() {
-  if (logger_ == nullptr) {
-    throw std::runtime_error("Logger not initialized.");
-  }
-  return *logger_;
+std::string timestamp() {
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t seconds = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+    gmtime_r(&seconds, &tm);
+    char buf[32];
+    std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &tm);
+    return buf;
 }
 
-void Logger::info(const std::string &message) {
-  get_logger().info(message);
+}  // namespace
+
+void Logger::setLevel(Level level) { g_level = level; }
+
+void Logger::setLevel(std::string_view name) {
+    if (name == "debug") {
+        g_level = Level::Debug;
+    } else if (name == "info") {
+        g_level = Level::Info;
+    } else if (name == "warn" || name == "warning") {
+        g_level = Level::Warn;
+    } else if (name == "error") {
+        g_level = Level::Error;
+    }
 }
 
-void Logger::error(const std::string &message) {
-  get_logger().error(message);
+void Logger::debug(std::string_view message) { write(Level::Debug, message); }
+void Logger::info(std::string_view message) { write(Level::Info, message); }
+void Logger::warn(std::string_view message) { write(Level::Warn, message); }
+void Logger::error(std::string_view message) { write(Level::Error, message); }
+
+void Logger::write(Level level, std::string_view message) {
+    if (static_cast<int>(level) < static_cast<int>(g_level)) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(g_mu);
+    std::cerr << timestamp() << " " << levelName(level) << " " << message << '\n';
 }
 
-void Logger::warn(const std::string &message) {
-  get_logger().warn(message);
-}
-
-void Logger::debug(const std::string &message) {
-  get_logger().debug(message);
-}
+}  // namespace ircp
