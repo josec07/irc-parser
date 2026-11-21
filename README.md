@@ -1,6 +1,6 @@
 # irc-parser
 
-A Self-hosted, read-only Twitch chat analytics. A single C++ process connects to Twitch IRC over TLS, keeps a short in-memory window, and serves it as JSON.
+A Self-hosted, read-only Twitch chat analytics API. A single C++ process connects to Twitch IRC over TLS, keeps a short in-memory window, and serves it as JSON.
 
 This is not a Twitch product. Read [COMPLIANCE.md](COMPLIANCE.md) as twitch guidelines are subject to change.
 
