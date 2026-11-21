@@ -6,6 +6,12 @@ Small servers on your side call the API. They do not open their own IRC sockets,
 
 This is not a Twitch product. Read [COMPLIANCE.md](COMPLIANCE.md) before you run it.
 
+## Demo
+
+![irc-parser counts moving](docs/demo.gif)
+
+Open [http://127.0.0.1:8080/demo](http://127.0.0.1:8080/demo) while the process is running. The GIF above is the recording. GitHub serves that file from the repo. You do not need Cloudflare for it.
+
 ## What it is
 
 ```
@@ -56,6 +62,9 @@ set -a && source .env && set +a
 ```
 
 Default bind is `127.0.0.1:8080`.
+
+
+
 
 ## API
 
