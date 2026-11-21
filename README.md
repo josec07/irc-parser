@@ -2,8 +2,6 @@
 
 Self-hosted, read-only Twitch chat analytics. One C++ process connects to Twitch IRC over TLS, keeps a short in-memory window, and serves it as JSON.
 
-Small servers on your side call the API. They do not open their own IRC sockets, and they never see an OAuth token or raw chat text.
-
 This is not a Twitch product. Read [COMPLIANCE.md](COMPLIANCE.md) before you run it.
 
 ## Demo
@@ -25,7 +23,7 @@ Twitch IRC (TLS 6697)
   POST /v1/channels   channels you explicitly watch
 ```
 
-Classes, not a script:
+Follows object oriented model for re-usable classes/services:
 
 | Class | Job |
 | --- | --- |
@@ -44,8 +42,9 @@ cp .env.example .env
 docker compose up --build -d
 curl -s http://127.0.0.1:8080/health
 ```
+Create a twitch application, store client id, and client secret, to get chat:read only artifact. 
 
-Compose binds the published port to `127.0.0.1`. Change that only if another machine on your network should call the API, and keep the API key.
+Compose binds the published port to `127.0.0.1`.
 
 Token: a user access token for an account you own, scope `chat:read` only. `TWITCH_NICK` is that account's login. Official flow: [Twitch authentication](https://dev.twitch.tv/docs/authentication/).
 
@@ -62,8 +61,6 @@ set -a && source .env && set +a
 ```
 
 Default bind is `127.0.0.1:8080`.
-
-
 
 
 ## API
@@ -89,7 +86,7 @@ Analytics are counts: messages per minute, unique chatters, bits, subs, raids, t
 
 ## Environment
 
-See `.env.example`. Do not commit `.env`.
+See `.env.example`.
 
 ## Build notes
 
