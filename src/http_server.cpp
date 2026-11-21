@@ -316,10 +316,12 @@ void HttpServer::handleClient(int fd) {
             response.body = "{\"error\":\"bad request\"}";
         } else {
             parsed = true;
+            const bool public_demo = request.method == "GET" &&
+                                     (request.path == "/demo" || request.path == "/demo/snapshot");
             if (request.method == "GET" && request.path == "/health") {
                 response.status = 200;
                 response.body = "{\"status\":\"ok\"}";
-            } else if (!requestAuthorized(request, api_key_)) {
+            } else if (!public_demo && !requestAuthorized(request, api_key_)) {
                 response.status = 401;
                 response.body = "{\"error\":\"unauthorized\"}";
             } else {

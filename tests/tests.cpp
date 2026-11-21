@@ -1,4 +1,5 @@
 #include "ircp/analytics.h"
+#include "ircp/demo.h"
 #include "ircp/compliance.h"
 #include "ircp/config.h"
 #include "ircp/http_server.h"
@@ -209,6 +210,25 @@ int main() {
     CHECK(status.find("irc.chat.twitch.tv") != std::string::npos);
     CHECK(client.watch("not a channel") == WatchStatus::Invalid);
     CHECK(client.watch("dallas") == WatchStatus::Duplicate);
+
+    const auto demo = demoSnapshot(
+        {{"connected", true}, {"authenticated", true}, {"nick", "somebot"}, {"last_error", "oauth:secret"}},
+        {{"channels", nlohmann::json::array({{{"channel", "dallas"},
+                                              {"join_state", "joined"},
+                                              {"messages", 3},
+                                              {"messages_per_minute", 1.5},
+                                              {"unique_chatters", 2},
+                                              {"top_chatters", {{{"login", "viewer123"}, {"messages", 2}}}},
+                                              {"room", {{"room_id", "42"}, {"emote_only", false}}}}})}});
+    const std::string demo_dump = demo.dump();
+    CHECK(demo["channels"][0]["channel"] == "dallas");
+    CHECK(!demo["channels"][0].contains("top_chatters"));
+    CHECK(!demo["channels"][0]["room"].contains("room_id"));
+    CHECK(demo_dump.find("viewer123") == std::string::npos);
+    CHECK(demo_dump.find("somebot") == std::string::npos);
+    CHECK(demo_dump.find("oauth:secret") == std::string::npos);
+    CHECK(demoPageHtml().find("/demo/snapshot") != std::string::npos);
+    CHECK(demoPageHtml().find("oauth:") == std::string::npos);
 
     if (g_failures != 0) {
         std::cerr << g_failures << " failure(s)\n";

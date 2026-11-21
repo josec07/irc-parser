@@ -1,5 +1,6 @@
 #include "ircp/app.h"
 
+#include "ircp/demo.h"
 #include "ircp/logger.h"
 #include "ircp/util.h"
 
@@ -74,6 +75,17 @@ int App::run() {
 }
 
 void App::onRequest(const HttpRequest& request, HttpResponse& response) {
+    if (request.method == "GET" && request.path == "/demo") {
+        response.status = 200;
+        response.content_type = "text/html; charset=utf-8";
+        response.body = demoPageHtml();
+        return;
+    }
+    if (request.method == "GET" && request.path == "/demo/snapshot") {
+        response.status = 200;
+        response.body = demoSnapshot(client_.statusJson(), analytics_.listJson()).dump();
+        return;
+    }
     if (request.method == "GET" && request.path == "/v1/status") {
         response.status = 200;
         response.body = client_.statusJson().dump();

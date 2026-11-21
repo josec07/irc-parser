@@ -22,6 +22,7 @@ add_library(ircp STATIC
     src/tls_session.cpp
     src/twitch_client.cpp
     src/http_server.cpp
+    src/demo.cpp
     src/app.cpp
 )
 
