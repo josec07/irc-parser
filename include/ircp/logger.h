@@ -1,24 +1,23 @@
 #pragma once
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h"
-#include <memory>
+
+#include <string>
+#include <string_view>
+
+namespace ircp {
 
 class Logger {
 public:
-    // Initialize the logger (called once in main or during setup)
-    static void initialize(const std::string& logger_name, const std::string& log_file_path);
+    enum class Level { Debug, Info, Warn, Error };
 
-    // Get the logger instance
-    static spdlog::logger& get_logger();
-
-    // Convenience log functions
-    static void info(const std::string& message);
-    static void error(const std::string& message);
-    static void warn(const std::string& message);
-    static void debug(const std::string& message);
+    static void setLevel(Level level);
+    static void setLevel(std::string_view name);
+    static void debug(std::string_view message);
+    static void info(std::string_view message);
+    static void warn(std::string_view message);
+    static void error(std::string_view message);
 
 private:
-
-    // shared ptr creates type
-    static std::shared_ptr<spdlog::logger> logger_;
+    static void write(Level level, std::string_view message);
 };
+
+}  // namespace ircp

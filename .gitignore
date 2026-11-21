@@ -1,7 +1,7 @@
 build/
+.env
 .vscode/
 .idea/
-docs/
 *.o
 *.a
 
@@ -16,6 +16,7 @@ cmake_install.cmake
 *.tar.bz2
 *.zip
 *.log
+demo.mp4
 *.tmp
 *.bak
 *.swp
