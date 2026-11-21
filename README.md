@@ -1,8 +1,8 @@
 # irc-parser
 
-Self-hosted, read-only Twitch chat analytics. One C++ process connects to Twitch IRC over TLS, keeps a short in-memory window, and serves it as JSON.
+A Self-hosted, read-only Twitch chat analytics. A single C++ process connects to Twitch IRC over TLS, keeps a short in-memory window, and serves it as JSON.
 
-This is not a Twitch product. Read [COMPLIANCE.md](COMPLIANCE.md) before you run it.
+This is not a Twitch product. Read [COMPLIANCE.md](COMPLIANCE.md) as twitch guidelines are subject to change.
 
 ## Demo
 
@@ -91,3 +91,12 @@ See `.env.example`.
 ## Build notes
 
 Boost, spdlog, and the old stdout pipe were removed. The previous socket read/send path was commented out, so the binary connected and exited. `nlohmann/json` stays as the one vendored header.
+
+## Updates Nov. 20th 2026:
+- [x] Simplified api binary, removed Boost and replaced with c++ native networking sockets.
+- [x] Removed spdlog for logger class and signal interrupts
+- [x] Keep Json SIMD process for processing output to json
+- [x] Added Docker containers and compose 
+
+## Future Upgrades:
+- [] Compliance Updates: SQlite log meta-data, follows twitch guidelines removes memory on CLEAR MESSAGE server commands
